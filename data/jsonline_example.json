@@ -1,0 +1,71 @@
+{
+    "comment": "目前看到，哪吒2说好看的人最多",
+    "sentiment_score": 4,
+    "storytelling": {
+        "score": 0,
+        "valid": 0
+    },
+    "character_and_performance": {
+        "score": 0,
+        "valid": 0
+    },
+    "production": {
+        "score": 0,
+        "valid": 0
+    },
+    "conclusion": "有限支持",
+    "valid_comment": 1
+}
+{
+    "comment": "绝对比第一部好看！好看！好看！好看！全程无尿点，两小时一转眼就过去了。画面绝对震撼、打斗超级过瘾，殷将军那段眼泪没控住。结局那几张水墨丹青画，美绝了！这才是中国文化爆裂输出！", "sentiment_score": 5, 
+    "storytelling": {
+        "score": 4, 
+        "valid": 1
+    }, 
+    "character_and_performance": {
+        "score": 4, 
+        "valid": 1
+    }, 
+    "production": {
+        "score": 5, 
+        "valid": 1
+    }, 
+    "conclusion": "热情推荐", 
+    "valid_comment": 1
+}
+{
+    "comment": "还有还有！哪吒以为陈塘关被龙族屠了的时候我第一反应是哪吒冲去东海找龙族算账，什么都不管不顾就给我杀的那种，结果哪吒第一时间先去完成第三个考核，先把敖丙救活，这一点真的，他真的成长了！！",
+    "sentiment_score": 5,
+    "storytelling": {
+        "score": 4,
+        "valid": 1
+    },
+    "character_and_performance": {
+        "score": 5,
+        "valid": 1
+    },
+    "production": {
+        "score": 0,
+        "valid": 0
+    },
+    "conclusion": "热情支持",
+    "valid_comment": 1
+}
+{
+    "comment": "一个是封神 一个西游记舔屏二个不同小说也能混淆一起的赞赞真才看看",
+    "sentiment_score": 1,
+    "storytelling": {
+        "score": 0,
+        "valid": 0
+    },
+    "character_and_performance": {
+        "score": 0,
+        "valid": 0
+    },
+    "production": {
+        "score": 0,
+        "valid": 0
+    },
+    "conclusion": "混乱评论",
+    "valid_comment": 0
+}
