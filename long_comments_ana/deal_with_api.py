@@ -4,12 +4,8 @@ import time
 import json
 import os
 from tqdm import tqdm
+import logging
 
-# 读取 Excel 文件
-file_path = 'data/all_data_cleaned.xlsx'  # TODO: 把这一行改成自己的文件地址
-OPENAI_API_KEY = "sk-0a7c55f0e6eb4661855c3b5b420dd108" # TODO: 把这个地方改成自己的 api key
-comments_data = pd.read_excel(file_path)
-client = openai.OpenAI(api_key=OPENAI_API_KEY, base_url="https://api.deepseek.com")
 
 # Define a function to score a comment
 def score_comment(comment):
@@ -105,25 +101,51 @@ def score_comment(comment):
         print(f"Error scoring comment: {e}")
         return None
 
-comments_data = comments_data.head(4000)
-# comments_data = comments_data.tail(3852)
 
+OPENAI_API_KEY = "sk-0a7c55f0e6eb4661855c3b5b420dd108" # TODO: 把这个地方改成自己的 api key
+client = openai.OpenAI(api_key=OPENAI_API_KEY, base_url="https://api.deepseek.com")
+
+file_path = 'data/all_data_cleaned.xlsx'  # TODO: 把这一行改成自己的文件地址
 output_file = 'data/scored_comments_all.jsonl' # TODO: 把这一行改成自己的输出文件地址
+comments_data = pd.read_excel(file_path)
 
+# comments_data = comments_data.head(4000)
+comments_data = comments_data.iloc[1662:4000]
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filename='comment_scoring.log',
+    filemode='a'
+)
+
+logging.info(f"Starting comment scoring for {len(comments_data)} comments")
 os.makedirs(os.path.dirname(output_file), exist_ok=True)
 with open(output_file, 'w') as f:
     pass
 
-for idx, row in tqdm(comments_data.iterrows(), total=len(comments_data)):
-    if 'content' in row and pd.notna(row['content']):
-        result = score_comment(row['content'])
-        if result:
-            if 'id' in row:
-                result['id'] = row['id']
-            
-            with open(output_file, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(result, ensure_ascii=False) + '\n')
-        
-        time.sleep(0.5)  # Rate limiting
+try:
+    for idx, row in tqdm(comments_data.iterrows(), total=len(comments_data)):
+        try:
+            if 'content' in row and pd.notna(row['content']):
+                logging.debug(f"Processing comment ID: {row.get('id', idx)}")
+                result = score_comment(row['content'])
+                if result:
+                    if 'id' in row:
+                        result['id'] = row['id']
+                    
+                    with open(output_file, 'a', encoding='utf-8') as f:
+                        f.write(json.dumps(result, ensure_ascii=False) + '\n')
+                    logging.debug(f"Successfully scored comment ID: {row.get('id', idx)}")
+                else:
+                    logging.warning(f"Failed to score comment ID: {row.get('id', idx)}")
+                
+                time.sleep(0.5)  # Rate limiting
+        except Exception as e:
+            logging.error(f"Error processing comment ID {row.get('id', idx)}: {str(e)}")
+except Exception as e:
+    logging.critical(f"Critical error in processing loop: {str(e)}")
+
+logging.info(f"Comment scoring completed. Results saved to {output_file}")
 
 print(f"评分完成，结果已保存到 {output_file}")
