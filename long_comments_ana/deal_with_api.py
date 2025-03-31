@@ -110,7 +110,7 @@ output_file = 'data/scored_comments_all.jsonl' # TODO: 把这一行改成自己�
 comments_data = pd.read_excel(file_path)
 
 # comments_data = comments_data.head(4000)
-comments_data = comments_data.iloc[1662:4000]
+comments_data = comments_data.iloc[3610:4000]
 
 logging.basicConfig(
     level=logging.INFO,
