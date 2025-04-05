@@ -34,3 +34,4 @@ ref/
 *.zip
 *.7z
 *.pdf
+datasets/
