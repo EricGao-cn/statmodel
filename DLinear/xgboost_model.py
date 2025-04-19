@@ -1,48 +1,46 @@
 import numpy as np
 import pandas as pd
+import xgboost as xgb
 import matplotlib.pyplot as plt
 from typing import List, Dict, Optional, Union, Tuple
-
-# 导入Darts相关库
 from darts import TimeSeries
-from darts.models import DLinearModel
-from darts.dataprocessing.transformers import Scaler
+from darts.models import XGBModel
 from darts.metrics import mape, rmse, mae
-from darts.utils.likelihood_models import GaussianLikelihood
+from darts.dataprocessing.transformers import Scaler
 
-class MovieBoxOfficeDLinear:
+class MovieBoxOfficeXGBoost:
     """
-    使用DLinear模型结合情感指数和电影特征预测票房
+    使用XGBoost模型结合情感指数和电影特征预测票房
     
-    DLinear是一个结合了线性层和分解的时间序列预测模型，
-    本实现通过引入电影特征（导演、主演、类型）作为静态协变量来增强预测能力
+    XGBoost是一个高效的梯度提升树模型，
+    本实现通过引入电影特征（导演、主演、类型）和情感指数作为特征来预测票房
     """
     
     def __init__(
         self,
         seq_len: int = 10,
         pred_len: int = 5,
-        learning_rate: float = 1e-4,
-        batch_size: int = 32,
-        epochs: int = 100,
+        learning_rate: float = 0.1,
+        max_depth: int = 5,
+        n_estimators: int = 100,
         random_state: int = 42
     ):
         """
-        初始化DLinear模型
+        初始化XGBoost模型
 
         参数:
             seq_len: 输入序列长度
             pred_len: 预测序列长度
             learning_rate: 学习率
-            batch_size: 批次大小
-            epochs: 训练轮数
+            max_depth: 树的最大深度
+            n_estimators: 树的数量
             random_state: 随机种子
         """
         self.seq_len = seq_len
         self.pred_len = pred_len
         self.learning_rate = learning_rate
-        self.batch_size = batch_size
-        self.epochs = epochs
+        self.max_depth = max_depth
+        self.n_estimators = n_estimators
         self.random_state = random_state
         self.model = None
         self.scaler_target = None
@@ -83,7 +81,7 @@ class MovieBoxOfficeDLinear:
         static_num_cols: List[str] = []
     ) -> Tuple[TimeSeries, TimeSeries, TimeSeries]:
         """
-        准备用于DLinear模型的数据
+        准备用于XGBoost模型的数据
         
         参数:
             df: 输入数据框
@@ -152,34 +150,34 @@ class MovieBoxOfficeDLinear:
         static_covariates: Optional[TimeSeries] = None
     ):
         """
-        训练DLinear模型
+        训练XGBoost模型
         
         参数:
             target_series: 目标时间序列（票房）
             sentiment_series: 协变量时间序列（情感指数）
             static_covariates: 静态协变量时间序列
         """
-        # 初始化DLinear模型
-        self.model = DLinearModel(
-            input_chunk_length=self.seq_len,
+        # 初始化XGBoost模型
+        self.model = XGBModel(
+            lags=self.seq_len,  # 使用过去seq_len个时间步的数据
+            lags_past_covariates=self.seq_len,
             output_chunk_length=self.pred_len,
-            n_epochs=self.epochs,
-            batch_size=self.batch_size,
-            optimizer_kwargs={"lr": self.learning_rate},
-            likelihood=GaussianLikelihood(),
-            random_state=self.random_state,
-            force_reset=True
+            model_kwargs={
+                'n_estimators': self.n_estimators,
+                'max_depth': self.max_depth,
+                'learning_rate': self.learning_rate,
+                'random_state': self.random_state
+            }
         )
         
         # 训练模型
         self.model.fit(
             series=target_series,
             past_covariates=sentiment_series,
-            static_covariates=static_covariates,
-            verbose=True
+            static_covariates=static_covariates
         )
         
-        print("模型训练完成")
+        print("XGBoost模型训练完成")
         
     def predict(
         self, 
@@ -251,7 +249,7 @@ class MovieBoxOfficeDLinear:
         self, 
         actual: TimeSeries, 
         predicted: TimeSeries, 
-        title: str = "DLinear票房预测结果"
+        title: str = "XGBoost票房预测结果"
     ):
         """
         绘制实际值与预测值的对比图
@@ -273,9 +271,9 @@ class MovieBoxOfficeDLinear:
 
 
 # 使用示例
-def dlinear_example():
+def xgboost_example():
     """
-    DLinear模型使用示例
+    XGBoost模型使用示例
     """
     # 示例数据准备 (实际使用时请替换为真实数据)
     dates = pd.date_range(start='2023-01-01', periods=100)
@@ -292,7 +290,7 @@ def dlinear_example():
     })
     
     # 创建模型实例
-    model = MovieBoxOfficeDLinear(seq_len=10, pred_len=5, epochs=50)
+    model = MovieBoxOfficeXGBoost(seq_len=10, pred_len=5, n_estimators=50)
     
     # 准备数据
     train_size = int(len(df) * 0.8)
@@ -331,4 +329,4 @@ def dlinear_example():
 
 
 if __name__ == "__main__":
-    dlinear_example()
+    xgboost_example()
